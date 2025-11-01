@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import { api } from "../api";
 
 const PAGE_BATCH = 5;
 
@@ -20,17 +20,13 @@ export default function BookReader() {
 
     setLoading(true);
     try {
-      const res = await axios.get(
-        `http://127.0.0.1:8000/books/${id}/pages?start=${start}&count=${PAGE_BATCH}`
-      );
-
+      const res = await api.get(`/books/${id}/pages?start=${start}&count=${PAGE_BATCH}`);
       const { pages: newPages, total_pages } = res.data;
       setTotalPages(total_pages);
 
-      // ✅ Add new pages to list
       if (newPages && newPages.length > 0) {
         setPages((prev) => [...prev, ...newPages]);
-        setStart((prev) => prev + newPages.length); // <-- Fix increment here
+        setStart((prev) => prev + newPages.length);
       }
     } catch (err) {
       console.error("❌ Fetch error:", err);
@@ -41,10 +37,10 @@ export default function BookReader() {
   }, [id, start, loading, totalPages]);
 
   useEffect(() => {
-    fetchPages(); // load first batch
+    fetchPages(); // Load first batch
   }, [id]);
 
-  // 🧭 Intersection Observer for infinite scroll
+  // 🧭 Infinite scroll observer
   const lastPageRef = useCallback(
     (node) => {
       if (loading) return;
@@ -52,11 +48,9 @@ export default function BookReader() {
 
       observer.current = new IntersectionObserver(
         (entries) => {
-          if (entries[0].isIntersecting) {
-            fetchPages(); // fetch next 5 when near bottom
-          }
+          if (entries[0].isIntersecting) fetchPages();
         },
-        { rootMargin: "300px" } // prefetch early for smoothness
+        { rootMargin: "300px" }
       );
 
       if (node) observer.current.observe(node);
@@ -81,11 +75,12 @@ export default function BookReader() {
             ref={isLast ? lastPageRef : null}
             className="w-10/12 md:w-8/12 mb-8 rounded-lg bg-white shadow-lg overflow-hidden transition-all duration-700 hover:shadow-2xl"
           >
+            {/* ✅ Use dynamic baseURL from api.js */}
             <img
-              src={`http://127.0.0.1:8000${url}`}
+              src={`${api.defaults.baseURL}${url}`}
               alt={`Page ${i + 1}`}
               className="w-full object-contain"
-              loading="lazy" // 💨 browser lazy loading for smoothness
+              loading="lazy"
             />
           </div>
         );

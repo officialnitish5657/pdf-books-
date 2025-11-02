@@ -20,7 +20,7 @@ const UploadBook = () => {
     formData.append("file", file);
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/books/", formData, {
+      const response = await axios.post("https://pdf-books-1.onrender.com/books/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

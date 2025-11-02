@@ -1,16 +1,17 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState, useRef } from "react";
+import { api } from "../api";
 
 const UploadBook = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
+  const fileInputRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const file = fileInputRef.current?.files[0];
     if (!file) {
-      setMessage("Please select a PDF file");
+      setMessage("⚠️ Please select a PDF file");
       return;
     }
 
@@ -20,25 +21,27 @@ const UploadBook = () => {
     formData.append("file", file);
 
     try {
-      const response = await axios.post("https://pdf-books-1.onrender.com/books/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const response = await api.post("/books/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setMessage(`✅ ${response.data.message}`);
+      setMessage(`✅ ${response.data.message || "Book uploaded successfully!"}`);
       setTitle("");
       setDescription("");
-      setFile(null);
+      fileInputRef.current.value = ""; // clear file input
     } catch (error) {
-      console.error(error);
-      setMessage("❌ Upload failed, please check server logs");
+      console.error("❌ Upload error:", error);
+      const msg =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        "❌ Upload failed. Please try again.";
+      setMessage(msg);
     }
   };
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-lg rounded-xl">
-      <h2 className="text-2xl font-bold mb-4 text-center">Upload New Book</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">📚 Upload New Book</h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
           type="text"
@@ -57,7 +60,7 @@ const UploadBook = () => {
         <input
           type="file"
           accept="application/pdf"
-          onChange={(e) => setFile(e.target.files[0])}
+          ref={fileInputRef}
           className="border p-2 rounded"
           required
         />
@@ -68,7 +71,20 @@ const UploadBook = () => {
           Upload Book
         </button>
       </form>
-      {message && <p className="text-center mt-4">{message}</p>}
+
+      {message && (
+        <p
+          className={`text-center mt-4 ${
+            message.startsWith("✅")
+              ? "text-green-600"
+              : message.startsWith("⚠️")
+              ? "text-yellow-600"
+              : "text-red-600"
+          }`}
+        >
+          {message}
+        </p>
+      )}
     </div>
   );
 };

@@ -16,7 +16,7 @@ Base.metadata.create_all(bind=engine)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-         # for now allow all origins — you can restrict later
+         "*",# for now allow all origins — you can restrict later
         "https://pdf-books-1.onrender.com/",  # ✅ replace with your frontend Render URL
         "http://localhost:5173",               # ✅ for local dev
     ],

@@ -15,26 +15,28 @@ export default function BookReader() {
 
   // 🧩 Fetch pages from backend
   const fetchPages = useCallback(async () => {
-    if (loading) return;
-    if (totalPages !== null && start >= totalPages) return;
+  if (loading) return;
+  if (totalPages !== null && start >= totalPages) return;
 
-    setLoading(true);
-    try {
-      const res = await api.get(`/books/${id}/pages?start=${start}&count=${PAGE_BATCH}`);
-      const { pages: newPages, total_pages } = res.data;
-      setTotalPages(total_pages);
+  setLoading(true);
+  try {
+    const res = await api.get(`/books/${id}/pages?start=${start}&count=${PAGE_BATCH}`);
+    console.log("📄 Page data:", res.data);
 
-      if (newPages && newPages.length > 0) {
-        setPages((prev) => [...prev, ...newPages]);
-        setStart((prev) => prev + newPages.length);
-      }
-    } catch (err) {
-      console.error("❌ Fetch error:", err);
-      setError("Failed to load book pages.");
-    } finally {
-      setLoading(false);
+    const { pages: newPages, total_pages } = res.data;
+    if (total_pages) setTotalPages(total_pages);
+    if (Array.isArray(newPages) && newPages.length > 0) {
+      setPages((prev) => [...prev, ...newPages]);
+      setStart((prev) => prev + newPages.length);
     }
-  }, [id, start, loading, totalPages]);
+  } catch (err) {
+    console.error("❌ Fetch error:", err);
+    setError("Failed to load book pages.");
+  } finally {
+    setLoading(false);
+  }
+}, [id, start, loading, totalPages]);
+
 
   useEffect(() => {
     fetchPages(); // Load first batch
@@ -69,6 +71,8 @@ export default function BookReader() {
 
       {pages.map((url, i) => {
         const isLast = i === pages.length - 1;
+        console.log("🖼️ Loading:", `${api.defaults.baseURL}${url}`);
+
         return (
           <div
             key={i}
@@ -77,7 +81,8 @@ export default function BookReader() {
           >
             {/* ✅ Use dynamic baseURL from api.js */}
             <img
-              src={`${api.defaults.baseURL}${url}`}
+             src={`${api.defaults.baseURL.replace(/\/$/, "")}${url}`}
+
               alt={`Page ${i + 1}`}
               className="w-full object-contain"
               loading="lazy"

@@ -57,7 +57,7 @@ export default function Books() {
               )}
               <h4>{book.title}</h4>
               <p>⭐ {book.rating?.toFixed(1) || 0}</p>
-              <Link to={`/books/${book.id}`}>Details</Link>
+              <Link to={`/books/${book.id}/`}>Details</Link>
             </div>
           ))
         )}

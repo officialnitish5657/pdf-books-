@@ -8,43 +8,46 @@ from . import models
 from .routes import books
 import os
 
-app = FastAPI(title="Books API", version="1.0.0", redirect_slashes=True)
+# --- Initialize app ---
+app = FastAPI(title="Books API", version="1.0.0")
 
+# --- Create database tables ---
 Base.metadata.create_all(bind=engine)
 
-# CORS setup (update later to your Render URL)
+# --- CORS setup (important for Render + React) ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-         "*",# for now allow all origins — you can restrict later
-        "https://pdf-books-1.onrender.com/",  # ✅ replace with your frontend Render URL
-        "http://localhost:5173",               # ✅ for local dev
-    ],
+    allow_origins=["*"],  # You can replace * with your frontend Render URL later
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# --- Define paths ---
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
+UPLOAD_DIR = BASE_DIR / "uploads"
 FRONTEND_DIR = BASE_DIR.parent / "frontend" / "dist"
 
+# Ensure folders exist
 os.makedirs(STATIC_DIR / "pages", exist_ok=True)
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Serve static files (for book pages)
+# --- Mount static files ---
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
-# Include routers
+# --- Include routers ---
 app.include_router(books.router)
 
-# Serve built React frontend
+# --- Serve built React frontend (Render + local) ---
 if FRONTEND_DIR.exists():
     app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 
+# --- Root endpoint ---
 @app.get("/")
 def root():
     index_path = FRONTEND_DIR / "index.html"
     if index_path.exists():
         return FileResponse(index_path)
     return {"message": "Backend is running 🚀"}
-    

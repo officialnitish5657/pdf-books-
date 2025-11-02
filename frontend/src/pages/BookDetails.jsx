@@ -12,7 +12,8 @@ export default function BookDetails() {
   useEffect(() => {
     const fetchBook = async () => {
       try {
-        const res = await api.get(`/books/${id}`);
+        const res = await api.get(`/books/${id}/`);
+        console.log("📘 Book data:", res.data);
         setBook(res.data);
       } catch (err) {
         console.error("❌ Error fetching book:", err);
@@ -57,7 +58,19 @@ export default function BookDetails() {
 
       <p>⭐ Rating: {book.rating?.toFixed(1) || 0}</p>
 
-      <Link to={`/books/${book.id}/read`}>📖 Read Book</Link>
+      {/* ✅ FIXED LINK — ensure book.id exists */}
+      <Link
+        to={`/books/${book?.id || id}/read`}
+        style={{
+          display: "inline-block",
+          marginTop: "10px",
+          color: "blue",
+          textDecoration: "underline",
+        }}
+      >
+        📖 Read Book
+      </Link>
+
       <br /><br />
 
       <a

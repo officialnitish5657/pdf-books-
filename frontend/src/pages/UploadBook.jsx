@@ -25,19 +25,21 @@ const UploadBook = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      console.log("Upload response:", response.data); // 👈 check what backend returns
       setMessage(`✅ ${response.data.message || "Book uploaded successfully!"}`);
       setTitle("");
       setDescription("");
-      fileInputRef.current.value = ""; // clear file input
+      fileInputRef.current.value = "";
     } catch (error) {
       console.error("❌ Upload error:", error);
       const msg =
         error.response?.data?.detail ||
         error.response?.data?.message ||
-        "❌ Upload failed. Please try again.";
+        "❌ Upload failed. Please check server logs.";
       setMessage(msg);
     }
   };
+
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-lg rounded-xl">
@@ -74,13 +76,12 @@ const UploadBook = () => {
 
       {message && (
         <p
-          className={`text-center mt-4 ${
-            message.startsWith("✅")
+          className={`text-center mt-4 ${message.startsWith("✅")
               ? "text-green-600"
               : message.startsWith("⚠️")
-              ? "text-yellow-600"
-              : "text-red-600"
-          }`}
+                ? "text-yellow-600"
+                : "text-red-600"
+            }`}
         >
           {message}
         </p>
